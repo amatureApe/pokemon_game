@@ -11,13 +11,23 @@ struct Pokemon:
     matches: uint256
     wins: uint256
 
+struct Trainer:
+    name: String[32]
+
 totalPokemonCount: public(uint256)
+trainerPokemonCount: HashMap[address, uint256]
+
 pokemonList: HashMap[uint256, Pokemon]
+trainerList: HashMap[address, Trainer]
+trainerToPokemon: HashMap[address, HashMap[uint256, Pokemon]]
 
 event NewPokemonCreated:
     name: String[32]
     dna: uint256
     HP: uint256
+
+event NewTrainerCreated:
+    name: String[32]
 
 @pure
 @internal
@@ -46,3 +56,18 @@ def _createPokemon(_name: String[32]) -> Pokemon:
     log NewPokemonCreated(_name, randomDNA, randomHP)
 
     return newPokemon
+
+@external
+def createTrainer(trainerName: String[32], pokemonName: String[32]):
+
+    newPokemon: Pokemon = self._createPokemon(pokemonName)
+
+    newTrainer: Trainer = Trainer({
+        name: trainerName
+    })
+
+    self.trainerList[msg.sender] = newTrainer
+    self.trainerToPokemon[msg.sender][self.trainerPokemonCount[msg.sender]] = newPokemon
+    self.trainerPokemonCount[msg.sender] += 1
+
+    log NewTrainerCreated(trainerName)
